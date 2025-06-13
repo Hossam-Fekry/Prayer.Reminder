@@ -1,16 +1,19 @@
-import tkinter as tk
-from tkinter import ttk
+from customtkinter import *
 from threading import Thread
 import time
 from plyer import notification
 import json
 import os
-
+import ctypes
 CONFIG_FILE = "config.json"
-
+city_entry = None
+country_entry = None
+root = None
 # دالة إرسال الإشعار
 def notify(prayer_name):
     
+    ctypes.windll.user32.LockWorkStation()
+
     notification.notify(
         title="Prayer Time",
         message=f"It's time for {prayer_name} prayer.",
@@ -45,30 +48,33 @@ def load_config():
             return json.load(f)
     return None
 
+
 # واجهة المستخدم لتحديد المدينة
 def show_city_selector():
-    root = tk.Tk()
-    root.title("Prayer Reminder")
-    root.geometry("350x200")
+    global city_entry, country_entry, root
+    root = CTk()
+    root.geometry("424x340")
+    root.title("Select City and Country")
+    root.resizable(False, False)
+    CTkLabel(root, text="Prayer Reminder", font=("Arial", 32, "bold")).pack(pady=20)
+    CTkLabel(root, text="Please enter your city", font=("Arial", 16, "bold")).place(x = 20, y = 100)
+    CTkLabel(root, text="Please enter your country", font=("Arial", 16, "bold")).place(x = 20, y = 150)
+    city_entry = CTkEntry(root, placeholder_text="City", width=200, height=40, font=("Arial", 16))
+    city_entry.place(x=220, y=100)
 
-    tk.Label(root, text="City:").pack(pady=5)
-    city_entry = tk.Entry(root)
-    city_entry.pack(pady=5)
+    country_entry = CTkEntry(root, placeholder_text="Country", width=200, height=40, font=("Arial", 16))
+    country_entry.place(x=220, y=150)
+    CTkButton(root, text="Submit", command=on_submit, font=("Arial", 16), corner_radius=25, fg_color="#13E52C", text_color="black").place(x = 110, y = 220)
+    root.mainloop()
 
-    tk.Label(root, text="Country Code (2 letters):").pack(pady=5)
-    country_entry = tk.Entry(root)
-    country_entry.pack(pady=5)
-
-    def on_submit():
+def on_submit():
+        global city_entry, country_entry, root
         city = city_entry.get()
         country = country_entry.get()
         if city and country:
             save_config(city, country)
             root.destroy()
             start_app(city, country)
-
-    ttk.Button(root, text="Start", command=on_submit).pack(pady=10)
-    root.mainloop()
 
 # الدالة الرئيسية
 def main():
